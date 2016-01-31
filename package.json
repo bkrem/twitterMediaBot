@@ -1,0 +1,22 @@
+{
+  "name": "kanye-news",
+  "version": "1.0.0",
+  "description": "I'm a Twitter bot that posts news headlines (+ links) with random pics of Yeezy.",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bkrem/examplebot.git"
+  },
+  "author": "Ben Kremer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bkrem/examplebot/issues"
+  },
+  "homepage": "https://github.com/bkrem/examplebot#readme",
+  "dependencies": {
+    "twit": "^2.1.7"
+  }
+}
