@@ -1,4 +1,5 @@
 var fs = require('fs');
+var request = require('request');
 var Twit = require('twit');
 var Flickr = require('flickrapi');
 
@@ -7,40 +8,35 @@ var T = new Twit(require('./config/twitConfig.js'));
 // Instance of Flickr API
 var flickrOpts = require('./config/flickrConfig');
 
-Flickr.authenticate(flickrOpts, function(error, flickr) {
-	if (error) throw new Error(error);
+function getKanye() {
+	Flickr.authenticate(flickrOpts, function (error, flickr) {
+		if (error) throw new Error(error);
 
-	flickr.photos.search({
-		text: "kanye+west"
-	}, function(err, result) {
-		if(err) { throw new Error(err); }
-		console.log(result);
+		flickr.photos.search({
+			text: "kanye+west"
+		}, function (err, result) {
+			if (err) console.error(err);
+
+			var randomPicId = result.photos.photo[0].id;
+			flickr.photos.getSizes({api_key: flickrOpts, photo_id: randomPicId}, function (err, result) {
+				if (err) console.error(err);
+
+				var randInt = Math.floor(Math.random() * 10);
+				console.log(result.sizes.size[randInt]);
+				downloadRandomKanye(result.sizes.size[randInt].source, "randomKanye" + randInt + ".jpg", function () {
+					console.log("Done")
+				})
+			})
+		});
 	});
-});
+}
 
-/**
- * This function finds the latest tweet with the given keyword, and retweets it.
- */
-function retweetLatest() {
-	// Search for the latest tweets matching query `q:`
-	var keyword = {q: "yeezy", count: 10, result_type: "recent"};
+function downloadRandomKanye(uri, filename, callback){
+	request.head(uri, function(err, res, body){
+		console.log('content-type:', res.headers['content-type']);
+		console.log('content-length:', res.headers['content-length']);
 
-	T.get('search/tweets', keyword, function (error, data) {
-
-		if (error) return console.error("Error at T.get('search/tweets'): " + error);
-
-	  	// ...then we grab the ID of the tweet we want to retweet...
-		var retweetId = data.statuses[0].id_str;
-		// ...and then we tell Twitter we want to retweet it!
-		T.post('statuses/retweet/' + retweetId, { }, function (error, response) {
-			if (response) {
-				console.log('Success! Check your bot, it should have retweeted something.')
-			}
-			// If there was an error with our Twitter call, we print it out here.
-			if (error) {
-				console.log('There was an error with Twitter:', error);
-			}
-		})
+		request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
 	});
 }
 
@@ -109,3 +105,5 @@ function simpleTweet(message) {
 /*getRandomHeadline(function (news) {
 	mediaUpload(news);
 });*/
+getKanye();
+setInterval(getKanye(), 1000 * 10);
