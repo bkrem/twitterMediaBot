@@ -1,10 +1,22 @@
 var fs = require('fs');
-
-// Our Twitter library
 var Twit = require('twit');
+var Flickr = require('flickrapi');
 
-// We need to include our configuration file
-var T = new Twit(require('./config.js'));
+// Instance of Twit API
+var T = new Twit(require('./config/twitConfig.js'));
+// Instance of Flickr API
+var flickrOpts = require('./config/flickrConfig');
+
+Flickr.authenticate(flickrOpts, function(error, flickr) {
+	if (error) throw new Error(error);
+
+	flickr.photos.search({
+		text: "kanye+west"
+	}, function(err, result) {
+		if(err) { throw new Error(err); }
+		console.log(result);
+	});
+});
 
 /**
  * This function finds the latest tweet with the given keyword, and retweets it.
@@ -94,6 +106,6 @@ function simpleTweet(message) {
 // 1000 ms = 1 second, 1 sec * 60 = 1 min, 1 min * 60 = 1 hour --> 1000 * 60 * 60
 //setInterval(retweetLatest, 1000 * 60 * 60);
 
-getRandomHeadline(function (news) {
+/*getRandomHeadline(function (news) {
 	mediaUpload(news);
-});
+});*/
