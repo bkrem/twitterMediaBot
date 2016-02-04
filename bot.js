@@ -3,6 +3,8 @@ var request = require('request');
 var Twit = require('twit');
 var Flickr = require('flickrapi');
 
+var util = require('./util/util');
+
 // Instance of Twit API
 var T = new Twit(require('./config/twitConfig.js'));
 // Instance of Flickr API
@@ -23,7 +25,7 @@ function getKanye() {
 
 				var randInt = Math.floor(Math.random() * 10);
 				console.log(result.sizes.size[randInt]);
-				downloadRandomKanye(result.sizes.size[randInt].source, "randomKanye" + randInt + ".jpg", function () {
+				util.downloadImage(result.sizes.size[randInt].source, "randomKanye" + randInt + ".jpg", function () {
 					console.log("Done")
 				})
 			})
@@ -31,14 +33,6 @@ function getKanye() {
 	});
 }
 
-function downloadRandomKanye(uri, filename, callback){
-	request.head(uri, function(err, res, body){
-		console.log('content-type:', res.headers['content-type']);
-		console.log('content-length:', res.headers['content-length']);
-
-		request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
-	});
-}
 
 /***********************/
 
@@ -61,16 +55,8 @@ function getRandomHeadline(callback) {
 	});
 }
 
-// function to encode file data to base64 encoded string
-function base64_encode(file) {
-	// read binary data
-	var bitmap = fs.readFileSync(file);
-	// convert binary data to base64 encoded string
-	return new Buffer(bitmap).toString('base64');
-}
-
 function mediaUpload(news) {
-	var img = base64_encode("/Users/BK/Desktop/yeezy.jpg");
+	var img = util.base64_encode("/Users/BK/Desktop/yeezy.jpg");
 	console.log(img);
 
 	T.post('media/upload', { media: img }, function (err, data, response) {
@@ -105,5 +91,3 @@ function simpleTweet(message) {
 /*getRandomHeadline(function (news) {
 	mediaUpload(news);
 });*/
-getKanye();
-setInterval(getKanye(), 1000 * 10);
