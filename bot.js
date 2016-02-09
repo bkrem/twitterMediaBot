@@ -10,8 +10,8 @@ var T = new Twit(require('./config/twitConfig.js'));
 // Instance of Flickr API
 var flickrOpts = require('./config/flickrConfig');
 
-function getKanye() {
-	Flickr.authenticate(flickrOpts, function (error, flickr) {
+function getKanyePic() {
+	Flickr.tokenOnly(flickrOpts, function (error, flickr) {
 		if (error) throw new Error(error);
 
 		flickr.photos.search({
@@ -19,13 +19,21 @@ function getKanye() {
 		}, function (err, result) {
 			if (err) console.error(err);
 
-			var randomPicId = result.photos.photo[0].id;
-			flickr.photos.getSizes({api_key: flickrOpts, photo_id: randomPicId}, function (err, result) {
-				if (err) console.error(err);
+			var randInt = Math.floor(Math.random() * 99);
+			var randomPicId = result.photos.photo[randInt].id;
 
-				var randInt = Math.floor(Math.random() * 10);
-				console.log(result.sizes.size[randInt]);
-				util.downloadImage(result.sizes.size[randInt].source, "randomKanye" + randInt + ".jpg", function () {
+			flickr.photos.getSizes({api_key: flickrOpts, photo_id: randomPicId}, function (err, result) {
+				if (err) return console.error(err);
+
+				var picSizes = result.sizes.size; // array
+				var mediumImage;
+				for (var i = 0; i < picSizes.length; i++)
+					if (picSizes[i].label === 'Medium') {
+						mediumImage = picSizes[i];
+						break;
+					}
+
+				util.downloadImage(mediumImage.source, "yeezy.jpg", function () {
 					console.log("Done")
 				})
 			})
@@ -56,7 +64,7 @@ function getRandomHeadline(callback) {
 }
 
 function mediaUpload(news) {
-	var img = util.base64_encode("/Users/BK/Desktop/yeezy.jpg");
+	var img = util.base64_encode("yeezy.jpg");
 	console.log(img);
 
 	T.post('media/upload', { media: img }, function (err, data, response) {
@@ -68,6 +76,7 @@ function mediaUpload(news) {
 		var params = { status: news, media_ids: [mediaIdStr] };
 
 		T.post('statuses/update', params, function (err, data, response) {
+			if (err) console.error(err);
 			console.log(data)
 		})
 	})
@@ -91,3 +100,5 @@ function simpleTweet(message) {
 /*getRandomHeadline(function (news) {
 	mediaUpload(news);
 });*/
+
+getKanyePic();
