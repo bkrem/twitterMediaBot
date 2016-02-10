@@ -19,6 +19,7 @@ function getKanyePic() {
 		}, function (err, result) {
 			if (err) console.error(err);
 
+			// choose a random pic ID out of the returned array
 			var randInt = Math.floor(Math.random() * 99);
 			var randomPicId = result.photos.photo[randInt].id;
 
@@ -26,15 +27,15 @@ function getKanyePic() {
 				if (err) return console.error(err);
 
 				var picSizes = result.sizes.size; // array
-				var mediumImage;
+				var targetImg;
 				for (var i = 0; i < picSizes.length; i++)
 					if (picSizes[i].label === 'Medium') {
-						mediumImage = picSizes[i];
+						targetImg = picSizes[i];
 						break;
 					}
 
-				util.downloadImage(mediumImage.source, "yeezy.jpg", function () {
-					console.log("Done")
+				util.downloadImage(targetImg.source, "yeezy.jpg", function () {
+					console.log("Done");
 				})
 			})
 		});
@@ -42,12 +43,32 @@ function getKanyePic() {
 }
 
 
-/***********************/
+/**
+ * Checks whether the passed headline has been posted before by comparing to
+ * the previous 100 tweets on @YeezyNewsBot
+ *
+ * @param tweetText
+ * @param callback
+ */
+function isTweetNew(tweetText, callback) {
+	var opts = { screen_name: 'YeezyNewsBot', exclude_replies: true };
+
+	T.get('statuses/user_timeline', opts, function (err, data) {
+		if (err) return console.error(err);
+
+		// check if any previous tweet text matches the new one
+		for (var i = 0; i < data.length; i++) {
+			if (data[i].text === tweetText)
+				callback(false);
+		}
+		// if no matches were found => return true for isTweetNew
+		callback(true);
+	})
+}
 
 function getRandomHeadline(callback) {
 	var agency, headline;
 	var randomSelection = Math.floor(Math.random() * 10);
-	console.log(randomSelection);
 	var opts = {
 		screen_name: 'guardian',
 		count: 10,
@@ -59,13 +80,12 @@ function getRandomHeadline(callback) {
 
 		agency = data[randomSelection].user.name;
 		headline = data[randomSelection].text;
-		callback(headline + " | " + agency);
+		if (callback) callback(headline + " | " + agency);
 	});
 }
 
 function mediaUpload(news) {
 	var img = util.base64_encode("yeezy.jpg");
-	console.log(img);
 
 	T.post('media/upload', { media: img }, function (err, data, response) {
 		if (err) return console.error(err);
@@ -77,7 +97,6 @@ function mediaUpload(news) {
 
 		T.post('statuses/update', params, function (err, data, response) {
 			if (err) console.error(err);
-			console.log(data)
 		})
 	})
 }
@@ -86,19 +105,27 @@ function simpleTweet(message) {
 	T.post('statuses/update', { status: message }, function(err, data, response) {
 		if (err) return console.error(err);
 		console.log("Tweeted " + "'" + message + "' " + "successfully: ");
-		console.log(data);
 	})
 }
 
-// Try to retweet something as soon as we run the program...
-//retweetLatest();
+function kanyeTweet() {
+	getRandomHeadline(function (news) {
+		console.log(news);
+		// Check if we've tweeted this headline before
+		isTweetNew(news, function (isNew) {
+			if (isNew) {
+				// Attach the formatted headline to the Twitter API media upload
+				mediaUpload(news);
+				// Get a new Kanye pic for next tweet
+				getKanyePic();
+			} else {
+				console.log("Tweet is not new; trying again...");
+				return kanyeTweet()
+			}
+		})
+	});
+}
 
-// ...and then every hour after that. Time here is in milliseconds, so
-// 1000 ms = 1 second, 1 sec * 60 = 1 min, 1 min * 60 = 1 hour --> 1000 * 60 * 60
-//setInterval(retweetLatest, 1000 * 60 * 60);
-
-/*getRandomHeadline(function (news) {
-	mediaUpload(news);
-});*/
-
-getKanyePic();
+// MAIN
+kanyeTweet();
+setInterval(kanyeTweet, 1000 * 60 * 10);
