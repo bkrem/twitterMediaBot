@@ -58,11 +58,12 @@ function isTweetNew(tweetText, callback) {
 
 		// check if any previous tweet text matches the new one
 		for (var i = 0; i < data.length; i++) {
-			if (data[i].text === tweetText)
-				callback(false);
+			if (data[i].text.substring(0,20) === tweetText.substring(0,20)) {
+				return callback(false);
+			}
 		}
 		// if no matches were found => return true for isTweetNew
-		callback(true);
+		return callback(true);
 	})
 }
 
@@ -128,4 +129,4 @@ function kanyeTweet() {
 
 // MAIN
 kanyeTweet();
-setInterval(kanyeTweet, 1000 * 60 * 10);
+setInterval(kanyeTweet, 1000 * 60 * 5);
