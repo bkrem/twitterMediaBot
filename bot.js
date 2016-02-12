@@ -10,23 +10,40 @@ var T = new Twit(require('./config/twitConfig.js'));
 // Instance of Flickr API
 var flickrOpts = require('./config/flickrConfig');
 
+
+/**
+ * Logs the passed error and reruns the script.
+ * Most errors are API-related => provides convenient way to try again.
+ *
+ * @param err - the passed error object
+ */
+function logAndRerun(err) {
+	console.error(err);
+	return main();
+}
+
+
+/**
+ *
+ * @param callback
+ */
 function getPic (callback) {
 	Flickr.tokenOnly(flickrOpts, function (error, flickr) {
-		if (error) throw new Error(error);
+		if (error) logAndRerun(error);
 
 		var textOpts = ["kanye+west", "kanye+west+kim+kardashian", "yeezus"];
 
 		flickr.photos.search({
 			text: textOpts[Math.floor( Math.random() * (textOpts.length - 1) )]
 		}, function (err, result) {
-			if (err) console.error(err);
+			if (err) logAndRerun(err);
 
 			// choose a random pic ID out of the returned array
 			var randInt = Math.floor(Math.random() * 99);
 			var randomPicId = result.photos.photo[randInt].id;
 
 			flickr.photos.getSizes({api_key: flickrOpts, photo_id: randomPicId}, function (err, result) {
-				if (err) return console.error(err);
+				if (err) logAndRerun(err);
 
 				var picSizes = result.sizes.size; // array
 				var targetImg;
@@ -57,7 +74,7 @@ function isTweetNew(tweetText, callback) {
 	var opts = { screen_name: 'YeezyNewsBot', exclude_replies: true };
 
 	T.get('statuses/user_timeline', opts, function (err, data) {
-		if (err) console.error(err);
+		if (err) logAndRerun(err);
 
 		// check if any previous tweet text matches the new one
 		for (var i = 0; i < data.length; i++) {
@@ -70,6 +87,11 @@ function isTweetNew(tweetText, callback) {
 	})
 }
 
+
+/**
+ *
+ * @param callback
+ */
 function getRandomHeadline(callback) {
 	var sources = ['guardian', 'NYDailyNews', 'BBCWorld', 'nytimes', 'BBCBusiness', 'BreakingNews', 'AP'];
 	var randomSelection = Math.floor(Math.random() * 10);
@@ -81,10 +103,7 @@ function getRandomHeadline(callback) {
 	console.log(opts.screen_name);
 
 	T.get('statuses/user_timeline', opts, function (err, data) {
-		if (err) {
-			console.error(err);
-			return main();
-		}
+		if (err) logAndRerun(err);
 
 		var agency = "@" + data[randomSelection].user.screen_name;
 		var headline = data[randomSelection].text;
@@ -98,11 +117,16 @@ function getRandomHeadline(callback) {
 	});
 }
 
+
+/**
+ *
+ * @param news
+ */
 function mediaUpload(news) {
 	var img = util.base64_encode("yeezy.jpg");
 
 	T.post('media/upload', { media: img }, function (err, data, response) {
-		if (err) console.error(err);
+		if (err) logAndRerun(err);
 
 		var mediaIdStr = data.media_id_string;
 		console.log(mediaIdStr);
@@ -119,12 +143,18 @@ function mediaUpload(news) {
 	})
 }
 
+
+/**
+ *
+ * @param message
+ */
 function simpleTweet(message) {
 	T.post('statuses/update', { status: message }, function(err, data, response) {
 		if (err) console.error(err);
 		console.log("Tweeted " + "'" + message + "' " + "successfully: ");
 	})
 }
+
 
 function main() {
 	getRandomHeadline(function (news) {
