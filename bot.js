@@ -10,7 +10,7 @@ var T = new Twit(require('./config/twitConfig.js'));
 // Instance of Flickr API
 var flickrOpts = require('./config/flickrConfig');
 
-function getPic () {
+function getPic (callback) {
 	Flickr.tokenOnly(flickrOpts, function (error, flickr) {
 		if (error) throw new Error(error);
 
@@ -38,6 +38,7 @@ function getPic () {
 
 				util.downloadImage(targetImg.source, "yeezy.jpg", function () {
 					console.log("Done");
+					callback(true);
 				})
 			})
 		});
@@ -80,7 +81,10 @@ function getRandomHeadline(callback) {
 	console.log(opts.screen_name);
 
 	T.get('statuses/user_timeline', opts, function (err, data) {
-		if (err) console.error(err);
+		if (err) {
+			console.error(err);
+			return main();
+		}
 
 		var agency = "@" + data[randomSelection].user.screen_name;
 		var headline = data[randomSelection].text;
