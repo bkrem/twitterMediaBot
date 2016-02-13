@@ -39,8 +39,8 @@ function getPic (callback) {
 			if (err) logAndRerun(err);
 
 			// choose a random pic ID out of the returned array
-			var randInt = Math.floor(Math.random() * 99);
-			var randomPicId = result.photos.photo[randInt].id;
+			var photoIndex = result.photos.photo.length - 1;
+			var randomPicId = result.photos.photo[Math.floor(Math.random() * photoIndex)].id;
 
 			flickr.photos.getSizes({api_key: flickrOpts, photo_id: randomPicId}, function (err, result) {
 				if (err) logAndRerun(err);
@@ -105,8 +105,10 @@ function getRandomHeadline(callback) {
 	T.get('statuses/user_timeline', opts, function (err, data) {
 		if (err) logAndRerun(err);
 
-		var agency = "@" + data[randomSelection].user.screen_name;
-		var headline = data[randomSelection].text;
+		var randSelection = data[Math.floor(Math.random() * (data.length-1))];
+
+		var agency = "@" + randSelection.user.screen_name;
+		var headline = randSelection.text;
 		var tweet = headline + "|" + agency;
 
 		if (tweet.length > 140) {
