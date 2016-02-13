@@ -53,10 +53,15 @@ function getPic (callback) {
 						break;
 					}
 
-				util.downloadImage(targetImg.source, "yeezy.jpg", function () {
-					console.log("Done");
-					callback(true);
-				})
+				try {
+					util.downloadImage(targetImg.source, "yeezy.jpg", function () {
+						console.log("Done");
+						callback(true);
+					})
+				} catch (e) {
+					console.error(e);
+					return main();
+				}
 			})
 		});
 	});
@@ -71,7 +76,7 @@ function getPic (callback) {
  * @param callback
  */
 function isTweetNew(tweetText, callback) {
-	var opts = { screen_name: 'YeezyNewsBot', exclude_replies: true };
+	var opts = { screen_name: 'YeezyNewsBot', count: 300, exclude_replies: true };
 
 	T.get('statuses/user_timeline', opts, function (err, data) {
 		if (err) logAndRerun(err);
@@ -94,7 +99,8 @@ function isTweetNew(tweetText, callback) {
  */
 function getRandomHeadline(callback) {
 	var sources = ['guardian', 'NYDailyNews', 'BBCWorld', 'nytimes', 'BBCBusiness',
-					'BreakingNews', 'AP', 'ABC', 'nytopinion', 'washingtonpost', 'Independent', 'BBCBreaking'];
+					'BreakingNews', 'AP', 'ABC', 'nytopinion', 'washingtonpost',
+					'Independent', 'BBCBreaking', 'CBSNews', 'cnnbrk', 'WSJ'];
 	var opts = {
 		screen_name: sources[Math.floor(Math.random() * (sources.length-1))],
 		count: 10,
@@ -131,7 +137,6 @@ function mediaUpload(news) {
 		if (err) logAndRerun(err);
 
 		var mediaIdStr = data.media_id_string;
-		console.log(mediaIdStr);
 		// now we can reference the media and post a tweet (media will attach to the tweet)
 		var params = { status: news, media_ids: [mediaIdStr] };
 
@@ -141,6 +146,7 @@ function mediaUpload(news) {
 				console.error("Error at 'statuses/update': " + err);
 				return main();
 			}
+			console.info('******TWEETED*******');
 		})
 	})
 }
