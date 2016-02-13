@@ -1,4 +1,5 @@
 var fs = require('fs');
+var request = require('request');
 var Twit = require('twit');
 var Flickr = require('flickrapi');
 

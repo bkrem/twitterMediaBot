@@ -18,6 +18,7 @@
   "homepage": "https://github.com/bkrem/examplebot#readme",
   "dependencies": {
     "flickrapi": "^0.3.36",
+    "request": "^2.69.0",
     "twit": "^2.1.7"
   }
 }
