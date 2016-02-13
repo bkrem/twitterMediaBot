@@ -93,8 +93,8 @@ function isTweetNew(tweetText, callback) {
  * @param callback
  */
 function getRandomHeadline(callback) {
-	var sources = ['guardian', 'NYDailyNews', 'BBCWorld', 'nytimes', 'BBCBusiness', 'BreakingNews', 'AP'];
-	var randomSelection = Math.floor(Math.random() * 10);
+	var sources = ['guardian', 'NYDailyNews', 'BBCWorld', 'nytimes', 'BBCBusiness',
+					'BreakingNews', 'AP', 'ABC', 'nytopinion', 'washingtonpost', 'Independent', 'BBCBreaking'];
 	var opts = {
 		screen_name: sources[Math.floor(Math.random() * (sources.length-1))],
 		count: 10,
