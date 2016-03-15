@@ -188,4 +188,4 @@ function main() {
 
 // MAIN
 main();
-setInterval(main, 1000 * 60 * 5);
+setInterval(main, 1000 * 60 * 60);
