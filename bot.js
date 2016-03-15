@@ -26,7 +26,7 @@ function logAndRerun(err) {
  *
  * @param callback
  */
-function getPic (callback) {
+function getImg (callback) {
 	Flickr.tokenOnly(flickrOpts, function (error, flickr) {
 		if (error) logAndRerun(error);
 
@@ -69,13 +69,12 @@ function getPic (callback) {
 
 /**
  * Checks whether the passed headline has been posted before by comparing to
- * the previous 100 tweets on @YeezyNewsBot
- *
- * @param tweetText
- * @param callback
+ * the previous 100 tweets of the bot
+ * @param tweetText - text to be used in the new tweet
+ * @param callback - bool => `true` or `false`
  */
 function isTweetNew(tweetText, callback) {
-	var opts = { screen_name: 'YeezyNewsBot', count: 300, exclude_replies: true };
+	var opts = { screen_name: 'YeezyNewsBot', count: 100, exclude_replies: true };
 
 	T.get('statuses/user_timeline', opts, function (err, data) {
 		if (err) logAndRerun(err);
@@ -93,7 +92,7 @@ function isTweetNew(tweetText, callback) {
 
 
 /**
- *
+ * Picks a random source from `sources` array, then selects a random tweet from determined source's timeline
  * @param callback
  */
 function getRandomHeadline(callback) {
@@ -170,7 +169,7 @@ function main() {
 		isTweetNew(news, function (isNew) {
 			if (isNew) {
 				try {
-					getPic(function () {
+					getImg(function () {
 						// Attach the formatted headline to the Twitter API media upload
 						mediaUpload(news);
 					});
