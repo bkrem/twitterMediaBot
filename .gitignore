@@ -3,6 +3,7 @@ node_modules/
 .idea/*
 
 config/*
+!config/botConfig.js
 
 data/*
 
