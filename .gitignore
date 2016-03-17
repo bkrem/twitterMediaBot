@@ -6,4 +6,5 @@ config/*
 
 data/*
 
-yeezy.jpg
+*.jpg
+*.png

@@ -133,7 +133,7 @@ function mediaUpload(news) {
 
 	T.post('media/upload', { media: img }, function (err, data, response) {
 		if (err) logAndRerun(err);
-
+		console.log(data);
 		var mediaIdStr = data.media_id_string;
 		// now we can reference the media and post a tweet (media will attach to the tweet)
 		var params = { status: news, media_ids: [mediaIdStr] };

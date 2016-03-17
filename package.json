@@ -1,21 +1,21 @@
 {
-  "name": "kanye-news",
+  "name": "twitterMediaBot",
   "version": "1.0.0",
-  "description": "I'm a Twitter bot that posts news headlines (+ links) with random pics of Yeezy.",
+  "description": "I'm a Twitter bot which lets you easily create media tweets containing text and/or images",
   "main": "bot.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bkrem/examplebot.git"
+    "url": "git+https://github.com/bkrem/twitterMediaBot.git"
   },
   "author": "Ben Kremer",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/bkrem/examplebot/issues"
+    "url": "https://github.com/bkrem/twitterMediaBot/issues"
   },
-  "homepage": "https://github.com/bkrem/examplebot#readme",
+  "homepage": "https://github.com/bkrem/twitterMediaBot#readme",
   "dependencies": {
     "flickrapi": "^0.3.36",
     "request": "^2.69.0",
