@@ -3,6 +3,7 @@ var Twit = require('twit');
 var Flickr = require('flickrapi');
 
 var util = require('./util/util');
+var config = require('./config/botConfig.js');
 
 // Instance of Twit API
 var T = new Twit(require('./config/twitConfig.js'));
@@ -13,7 +14,6 @@ var flickrOpts = require('./config/flickrConfig');
 /**
  * Logs the passed error and reruns the script.
  * Most errors are API-related => provides convenient way to try again.
- *
  * @param err - the passed error object
  */
 function logAndRerun(err) {
@@ -30,10 +30,11 @@ function getImg (callback) {
 	Flickr.tokenOnly(flickrOpts, function (error, flickr) {
 		if (error) logAndRerun(error);
 
-		var textOpts = ["kanye+west", "kanye+west+kim+kardashian", "yeezus"];
+		var keywords = config.IMG_KEYWORDS;
 
 		flickr.photos.search({
-			text: textOpts[Math.floor( Math.random() * (textOpts.length - 1) )]
+			// select a search keyword at random
+			text: keywords[Math.floor( Math.random() * (keywords.length - 1) )]
 		}, function (err, result) {
 			if (err) logAndRerun(err);
 
@@ -47,19 +48,18 @@ function getImg (callback) {
 				var picSizes = result.sizes.size; // array
 				var targetImg;
 				for (var i = 0; i < picSizes.length; i++)
-					if (picSizes[i].label === 'Medium') {
+					if (picSizes[i].label === config.IMG_SIZE) {
 						targetImg = picSizes[i];
 						break;
 					}
 
 				try {
-					util.downloadImage(targetImg.source, "yeezy.jpg", function () {
+					util.downloadImage(targetImg.source, config.IMG, function () {
 						console.log("Done");
 						callback(true);
 					})
 				} catch (e) {
-					console.error(e);
-					return main();
+					logAndRerun(e)
 				}
 			})
 		});
@@ -74,13 +74,14 @@ function getImg (callback) {
  * @param callback - bool => `true` or `false`
  */
 function isTweetNew(tweetText, callback) {
-	var opts = { screen_name: 'YeezyNewsBot', count: 100, exclude_replies: true };
+	var opts = { screen_name: config.ACCOUNT, count: 100, exclude_replies: true };
 
 	T.get('statuses/user_timeline', opts, function (err, data) {
 		if (err) logAndRerun(err);
 
 		// check if any previous tweet text matches the new one
 		for (var i = 0; i < data.length; i++) {
+			// check if first 20 chars match for reasonable assurance
 			if (data[i].text.substring(0,20) === tweetText.substring(0,20)) {
 				return callback(false);
 			}
@@ -95,25 +96,23 @@ function isTweetNew(tweetText, callback) {
  * Picks a random source from `sources` array, then selects a random tweet from determined source's timeline
  * @param callback
  */
-function getRandomHeadline(callback) {
-	var sources = ['guardian', 'NYDailyNews', 'BBCWorld', 'nytimes', 'BBCBusiness',
-					'BreakingNews', 'AP', 'ABC', 'nytopinion', 'washingtonpost',
-					'Independent', 'BBCBreaking', 'CBSNews', 'cnnbrk', 'WSJ'];
+function getRandomTweet(callback) {
+	var sources = config.SOURCES;
 	var opts = {
 		screen_name: sources[Math.floor(Math.random() * (sources.length-1))],
 		count: 10,
 		exclude_replies: true
 	};
-	console.log(opts.screen_name);
+	console.log('Selecting random tweet from: ' + opts.screen_name);
 
 	T.get('statuses/user_timeline', opts, function (err, data) {
 		if (err) logAndRerun(err);
 
 		var randSelection = data[Math.floor(Math.random() * (data.length-1))];
 
-		var agency = "@" + randSelection.user.screen_name;
-		var headline = randSelection.text;
-		var tweet = headline + "|" + agency;
+		var source = "@" + randSelection.user.screen_name;
+		var text = randSelection.text;
+		var tweet = text + "|" + source;
 
 		if (tweet.length > 140) {
 			console.info("Constructed tweet is too long; trying again...");
@@ -126,17 +125,17 @@ function getRandomHeadline(callback) {
 
 /**
  *
- * @param news
+ * @param text
  */
-function mediaUpload(news) {
-	var img = util.base64_encode("yeezy.jpg");
+function mediaTweet(text) {
+	var img = util.base64_encode(config.IMG);
 
 	T.post('media/upload', { media: img }, function (err, data, response) {
 		if (err) logAndRerun(err);
-		console.log(data);
+
 		var mediaIdStr = data.media_id_string;
 		// now we can reference the media and post a tweet (media will attach to the tweet)
-		var params = { status: news, media_ids: [mediaIdStr] };
+		var params = { status: text, media_ids: [mediaIdStr] };
 
 		T.post('statuses/update', params, function (err, data, response) {
 			if (err) {
@@ -151,8 +150,8 @@ function mediaUpload(news) {
 
 
 /**
- *
- * @param message
+ * Publishes a simple text-only tweet
+ * @param message - string to be tweeted
  */
 function simpleTweet(message) {
 	T.post('statuses/update', { status: message }, function(err, data, response) {
@@ -163,19 +162,18 @@ function simpleTweet(message) {
 
 
 function main() {
-	getRandomHeadline(function (news) {
-		console.log(news);
-		// Check if we've tweeted this headline before
-		isTweetNew(news, function (isNew) {
+	getRandomTweet(function (text) {
+		console.log(text);
+		// Check if we've tweeted this text before
+		isTweetNew(text, function (isNew) {
 			if (isNew) {
 				try {
 					getImg(function () {
-						// Attach the formatted headline to the Twitter API media upload
-						mediaUpload(news);
+						// Attach the text to the Twitter API media upload
+						mediaTweet(text);
 					});
 				} catch (e) {
-					console.error(e);
-					return main();
+					logAndRerun(e)
 				}
 			} else {
 				console.log("Tweet is not new; trying again...");
