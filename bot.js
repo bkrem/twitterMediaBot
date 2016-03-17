@@ -1,4 +1,3 @@
-var fs = require('fs');
 var Twit = require('twit');
 var Flickr = require('flickrapi');
 
@@ -23,7 +22,7 @@ function logAndRerun(err) {
 
 
 /**
- *
+ * Fetches a random image from a selection determined by `config.IMG_KEYWORDS` and writes it to the local directory
  * @param callback
  */
 function getImg (callback) {
@@ -68,7 +67,7 @@ function getImg (callback) {
 
 
 /**
- * Checks whether the passed headline has been posted before by comparing to
+ * Checks whether the passed tweet text has been posted before by comparing to
  * the previous 100 tweets of the bot
  * @param tweetText - text to be used in the new tweet
  * @param callback - bool => `true` or `false`
@@ -86,7 +85,7 @@ function isTweetNew(tweetText, callback) {
 				return callback(false);
 			}
 		}
-		// if no matches were found => return true for isTweetNew
+		// if no matches were found => return true
 		return callback(true);
 	})
 }
